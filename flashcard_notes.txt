@@ -1,0 +1,43 @@
+Lec. 3.:
+
+- log loss / cross entropy loss function from maximum likelihood estimate
+- softmax
+- logistic regression as a NN with one layer (output layer)
+
+
+Lec. 4.:
+
+- convolution?
+- kernel vs filter??
+- output size:
+	- input channel size, 
+	- kernel size, 
+	- stride, 
+	- padding
+- translational invariance
+- better to stack multiple filters vs using few large filters, e.g. three 3x3 filters have 27 params, while one 9x9 have 81
+- receptive field, increases when going into deeper layers, k-1 per layer for filter size k
+- pooling (max, average) idea of the highest activation in a region being enough to learn that information
+
+Lec. 5.:
+
+- dropout regularization, element wise multiplying layer-input/feature vector with either a 0 or 1 vector (Beroulli random variable, distribution)
+	- Why does it work? Single correlations not overemphasised, no dominant neuron
+- Residual connections?
+- batch normalization?
+- group normalization?
+- layer normalization?
+	- works well for sequential modeles such as tranformers and recurrent neural networks (RNNs)
+- feature map???
+- Densenets
+- "Auxiliary"?
+- finetuning:
+	- Always initilize weights with pre-trained weights for performance, unless data is in order of >=10^5
+	- low-level filters similar
+	- low-level features learn from deep networks over wide general tasks (e.g. Imagenet) can be reused for many other tasks
+	- Train only top layer vs all layers, dataset dependant what works best, check on validation set
+	- "Data augmentation"?
+
+Lec. 6.:
+
+
