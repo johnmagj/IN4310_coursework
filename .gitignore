@@ -209,6 +209,9 @@ pip-selfcheck.json
 # Ignore all subdirectories in Datasets folder
 Datasets/*/
 
+# Ignore the following folders
 Week_00/Datasets/*
 Week_00/models/*
 Week_01/models/*
+
+Mandatory1/Mandatory1_data/*
