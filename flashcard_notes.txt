@@ -7,17 +7,19 @@ Lec. 3.:
 
 Lec. 4.:
 
-- convolution?
+- convolution? (one explanation: the filter is convolved with input)
 - kernel vs filter??
 - output size:
 	- input channel size, 
 	- kernel size, 
 	- stride, 
 	- padding
+- downsampling
 - translational invariance
 - better to stack multiple filters vs using few large filters, e.g. three 3x3 filters have 27 params, while one 9x9 have 81
 - receptive field, increases when going into deeper layers, k-1 per layer for filter size k
 - pooling (max, average) idea of the highest activation in a region being enough to learn that information
+- we train the network by updating the weights (the numbers in the kernel). Since the kernel slide over many spots/features/pixels/numbers, the rule is that the gradient of a weight is the sum of gradients from all the spots the weight was used
 
 Lec. 5.:
 
@@ -28,7 +30,7 @@ Lec. 5.:
 - group normalization?
 - layer normalization?
 	- works well for sequential modeles such as tranformers and recurrent neural networks (RNNs)
-- feature map???
+- feature map??? --> After convolution, bias added, we have the feature map, run this through a ReLu activation function, then we have a post ReLu feature-map which we max/avg pool from, this post pool feature map can be flatten and sent to a FFNN
 - Densenets
 - "Auxiliary"?
 - finetuning:
