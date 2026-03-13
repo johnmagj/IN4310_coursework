@@ -43,3 +43,15 @@ Lec. 5.:
 Lec. 6.:
 
 
+	- Stratification / stratified sampling: Sampling from a population such that your sample have the same or close to the same proportion of subgroups/labels (age, gender etc.) as the population DONE
+	- Data augmentation: DONE
+
+- Bottlenecks running CNN on node: 
+	1. parallelize explicitly so that the code not just see more than one GPU but uses them all
+	2. Batch size around 32 seem favourable int terms of speed and resource use
+	3. Increase number of workers, to for instance 16, can be a BIG bottleneck if the GPUs have to wait for the data. Workers in the CPU (essentially cores in the CPU, typically for each physical one additional logical, 2 per physical). num_workers = 4 * num_GPUs have been suggested.
+	4. pin_memory=True , "page-locked" memory bypass several steps when moving to GPU, increase transfer speed
+	--> used in torch.utils.data.DataLoader()
+
+
+
