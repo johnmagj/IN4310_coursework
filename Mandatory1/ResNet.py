@@ -17,7 +17,7 @@ class ResNet(nn.Module):
     - Stage: A sequence of blocks that operate at the same spatial resolution in the network. 
             For example, in ResNet, the network downsamples (reduces spatial dimensions) at the beginning of a new stage.
     '''
-    def __init__(self, img_channels: int, num_layers: int=18, num_classes: int  = 1000):
+    def __init__(self, img_channels: int=3, num_layers: int=18, num_classes: int=6):
         super(ResNet, self).__init__()
         if num_layers == 18:
             # Number of blocks per stage for ResNet-18 is 2,2,2,2 per stage.
