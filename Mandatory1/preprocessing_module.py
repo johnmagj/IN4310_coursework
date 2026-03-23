@@ -16,7 +16,7 @@ def find_class_names_filenames(img_dir):
     Args:
         img_dir (str): root directory path, must folders of image files, each folder representing a class
     
-    Return:
+    Returns:
         class_names (str): list of class names, sorted
         class_filenames (list): list containing lists with filenames, each the indices of each sublist correspond to same index in class_names 
     """
@@ -39,13 +39,13 @@ def get_path_from_dataset_indices(dataset, class_names, class_filenames, img_dir
     Helper function for stratified_split_data_paths().
     
     Args:
-        dataset: list of [class_number, file_index] pairs
-        class_names: list of class names
-        class_filenames: list of lists, where each sub list contains filenames of class
-        img_dir: root directory with class
+        dataset (list): list of [class_number, file_index] pairs
+        class_names (list): list of class names
+        class_filenames (list): list of lists, where each sub list contains filenames of class
+        img_dir (str): root directory with class
     
-    Return:
-        list of filepaths
+    Returns:
+        dataset_file_paths (list): list of filepaths
     """
     dataset_file_paths = []
     for class_idx, filename_idx in dataset:
@@ -64,8 +64,15 @@ def stratified_split_data_paths(img_dir, class_names, class_filenames):
     2. Use array of [class_number, img_index] pairs as x, and create a class_number target array, y 
     3. Split into into train, val and, test set
     4. Check if sets are disjoint
+
+    Args:
+        img_dir (str): root directory path, must folders of image files, each folder representing a class
+        class_names (list): list of class names
+        class_filenames (list): list of lists, where each sub list contains filenames of class
     
-    Return: Lists of img paths and corresponding lists of class numbers
+    Returns:
+        tuple: (x_train_paths, x_val_paths, x_test_paths, y_train, y_val, y_test)
+        Each a list of img paths
     """
 
     # Create one large array containing [class_number, filename_index] pairs of all the images based on the ordering in class_filenames
