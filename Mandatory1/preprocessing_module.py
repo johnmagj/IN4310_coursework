@@ -18,6 +18,7 @@ def find_class_names_filenames(img_dir):
     
     Returns:
         class_names (str): list of class names, sorted
+
         class_filenames (list): list containing lists with filenames, each the indices of each sublist correspond to same index in class_names 
     """
 
@@ -34,7 +35,7 @@ def find_class_names_filenames(img_dir):
 
     return class_names, class_filenames
 
-def get_path_from_dataset_indices(dataset, class_names, class_filenames, img_dir):
+def get_path_from_dataset_indices(dataset, class_names, class_filenames):
     """
     Helper function for stratified_split_data_paths().
     
@@ -42,7 +43,6 @@ def get_path_from_dataset_indices(dataset, class_names, class_filenames, img_dir
         dataset (list): list of [class_number, file_index] pairs
         class_names (list): list of class names
         class_filenames (list): list of lists, where each sub list contains filenames of class
-        img_dir (str): root directory with class
     
     Returns:
         dataset_file_paths (list): list of filepaths
@@ -53,12 +53,12 @@ def get_path_from_dataset_indices(dataset, class_names, class_filenames, img_dir
 
         class_name = class_names[class_idx]
         filename = class_filenames[class_idx][filename_idx]
-        file_path = os.path.join(img_dir, class_name, filename)
+        file_path = os.path.join(class_name, filename)
         dataset_file_paths.append(file_path)
 
     return dataset_file_paths
 
-def stratified_split_data_paths(img_dir, class_names, class_filenames):
+def stratified_split_data_paths(class_names, class_filenames):
     """
     1. Create array of indices for each file in each of the classes, in format: [[class_number, img_index], ... ]
     2. Use array of [class_number, img_index] pairs as x, and create a class_number target array, y 
@@ -66,7 +66,6 @@ def stratified_split_data_paths(img_dir, class_names, class_filenames):
     4. Check if sets are disjoint
 
     Args:
-        img_dir (str): root directory path, must folders of image files, each folder representing a class
         class_names (list): list of class names
         class_filenames (list): list of lists, where each sub list contains filenames of class
     
@@ -98,27 +97,26 @@ def stratified_split_data_paths(img_dir, class_names, class_filenames):
                                                                                     stratify=y_valtest)
 
     # Get the paths from the indices
-    x_train_paths = get_path_from_dataset_indices(x_train_indices, class_names, class_filenames, img_dir)
-    x_val_paths = get_path_from_dataset_indices(x_val_indices, class_names, class_filenames, img_dir)
-    x_test_paths = get_path_from_dataset_indices(x_test_indices, class_names, class_filenames, img_dir)
+    x_train_paths = get_path_from_dataset_indices(x_train_indices, class_names, class_filenames)
+    x_val_paths = get_path_from_dataset_indices(x_val_indices, class_names, class_filenames)
+    x_test_paths = get_path_from_dataset_indices(x_test_indices, class_names, class_filenames)
 
     # Check if the sets are disjoint
-    not_disjoint = 0
+    not_disjoint = []
     if not set(x_train_paths).isdisjoint(set(x_val_paths)):
         print("Train and val set not disjoint")
-        not_disjoint += 0
+        not_disjoint.append(1)
 
     if not set(x_train_paths).isdisjoint(set(x_test_paths)):
         print("Train and test set not disjoint")
-        not_disjoint += 0
+        not_disjoint.append(2)
 
     if not set(x_val_paths).isdisjoint(set(x_test_paths)):
         print("Val and test set not disjoint")
-        not_disjoint += 0
+        not_disjoint.append(3)
 
-    if not_disjoint > 0:
-        raise ValueError("Datasets not disjoint")
-
+    if not_disjoint:
+        raise ValueError(f"One ore more datasets are not disjoint, {not_disjoint}")
 
     return x_train_paths, x_val_paths, x_test_paths, y_train, y_val, y_test
 
@@ -128,18 +126,20 @@ def stratified_split_data_paths(img_dir, class_names, class_filenames):
 # Inspired by 02_CNN_Example.ipynb
 
 class NatureCityScenesDataset(torch.utils.data.Dataset):
-    def __init__(self, x_paths, y_class_number, transform=None):
-
+    def __init__(self, img_dir, x_paths, y_class_number, transform=None):
+        """
+        img_dir (str): root directory path, must folders of image files, each folder representing a class
+        """
+        self.img_dir = img_dir
         self.image_paths = x_paths
         self.image_label = y_class_number
-
         self.transform = transform
     
     def __len__(self):
         return len(self.image_paths)
 
     def __getitem__(self, idx):
-        img_path = self.image_paths[idx]
+        img_path = os.path.join(self.img_dir, self.image_paths[idx])
         # Convert to RGB (if some images are RGBA or Grayscale)
         image = Image.open(img_path).convert("RGB")
 
