@@ -25,12 +25,14 @@ class Trainer:
         criterion: nn.Module,
         optimizer: torch.optim.Optimizer,
         device: torch.device,
+        run_name: str = "default_run",
         augment_fn: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
     ):
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
         self.device = device
+        self.run_name = run_name
         self.augment_fn = augment_fn
 
         self.history: Dict[str, list] = {
@@ -141,6 +143,8 @@ class Trainer:
                           AP_per_class=avg_precision_per_class)
 
     def fit(self, train_loader: DataLoader, val_loader: DataLoader, epochs: int = 10):
+        best_val_mAP = 0.0
+
         for epoch in range(1, epochs + 1):
             train_stats = self.train_one_epoch(train_loader)
             val_stats = self.evaluate(val_loader)
@@ -152,6 +156,10 @@ class Trainer:
             self.history["val_acc_per_class"].append(val_stats.acc_per_class)
             self.history["val_mAP"].append(val_stats.mAP)
             self.history["val_AP_per_class"].append(val_stats.AP_per_class)
+
+            if val_stats.mAP > best_val_mAP:
+                best_val_mAP = val_stats.mAP
+                torch.save(self.model.state_dict(), f"{self.run_name}_best_weights.pth")
 
             print(
                 f"Epoch {epoch:02d} | "
