@@ -1,3 +1,5 @@
+import numpy as np
+
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -11,8 +13,9 @@ from typing import Callable, Dict, Optional
 class EpochStats:
     loss: float
     acc: float
-    mAP: float
-    AP_per_class: float
+    mAP: Optional[float] = None
+    acc_per_class: Optional[np.ndarray] = None 
+    AP_per_class: Optional[np.ndarray] = None
 
 
 class Trainer:
@@ -35,6 +38,7 @@ class Trainer:
             "train_acc": [],
             "val_loss": [],
             "val_acc": [],
+            "val_acc_per_class": [],
             "val_mAP": [],
             "val_AP_per_class": [],
         }
@@ -70,7 +74,7 @@ class Trainer:
             total_acc += self._accuracy(logits, targets)
             n_batches += 1
 
-        return EpochStats(loss=total_loss / n_batches, acc=total_acc / n_batches, mAP=0.0, AP_per_class=0.0)
+        return EpochStats(loss=total_loss / n_batches, acc=total_acc / n_batches)
 
     @torch.no_grad()
     def evaluate(self, loader: DataLoader) -> EpochStats:
@@ -100,25 +104,39 @@ class Trainer:
         # logits have shape [batch size, number of classes], 
         # first row is the raw output from the model for the first individual sample of the batch.
         # Turn list of tensors (one for each batch) into one tensor-typed list
-        all_logits = torch.concatenate(store_logits)
-        all_targets = torch.concatenate(store_targets)
+        all_logits = torch.cat(store_logits)
+        all_targets = torch.cat(store_targets)
 
         # Move to cpu
         all_logits = all_logits.cpu()
         all_targets = all_targets.cpu()
 
         # Turn raw model output into probabilities with softmax, dim=1 so we get sofmax per indv. sample over all classes
-        prob_scores = torch.softmax(all_logits, dim=1).numpy()
+        prob_scores = torch.softmax(all_logits, dim=1)
         
         # Turn target values (class number) into one-hot encoded tensor 
         n_classes = all_logits.shape[1]
-        one_hot_targets = torch.nn.functional.one_hot(all_targets, num_classes=n_classes).numpy()
+        one_hot_targets = torch.nn.functional.one_hot(all_targets, num_classes=n_classes)
 
-        mean_avg_precision = average_precision_score(y_score=prob_scores, y_true=one_hot_targets)
-        avg_precision_per_class = average_precision_score(y_score=prob_scores, y_true=one_hot_targets, average=None)
+        mean_avg_precision = average_precision_score(y_score=prob_scores.numpy(), y_true=one_hot_targets.numpy())
+        avg_precision_per_class = average_precision_score(y_score=prob_scores.numpy(), y_true=one_hot_targets.numpy(), average=None)
+
+        # Calculate accuracy per class
+        # True/False tensor
+        correct_pred_of_classnumb = all_logits.argmax(dim=1) == all_targets
+        # Excplicitly turn correct_pred_of_classnumb into shape (sampels, 1),same shape as targets
+        actually_correct_preds_tensor = correct_pred_of_classnumb.unsqueeze(1)*one_hot_targets
+        # Sum up all correct (1s) predictions per class (column), divide each column by the number of class samples in the dataset,
+        # casting to float to ensure no integer division
+        acc_per_class_tensor = actually_correct_preds_tensor.sum(dim=0).float()/one_hot_targets.sum(dim=0).float()
+        #If one class does not appear in the dataset (will result in NaN above) we set it to 0.0
+        acc_per_class_tensor = torch.nan_to_num(acc_per_class_tensor, nan=0.0)
+        # Turn into numpu array
+        acc_per_class_arr = acc_per_class_tensor.numpy()
 
         return EpochStats(loss=total_loss/n_batches, 
-                          acc=total_acc/n_batches, 
+                          acc=total_acc/n_batches,
+                          acc_per_class=acc_per_class_arr,  
                           mAP=mean_avg_precision, 
                           AP_per_class=avg_precision_per_class)
 
@@ -131,11 +149,12 @@ class Trainer:
             self.history["train_acc"].append(train_stats.acc)
             self.history["val_loss"].append(val_stats.loss)
             self.history["val_acc"].append(val_stats.acc)
+            self.history["val_acc_per_class"].append(val_stats.acc_per_class)
             self.history["val_mAP"].append(val_stats.mAP)
             self.history["val_AP_per_class"].append(val_stats.AP_per_class)
 
             print(
                 f"Epoch {epoch:02d} | "
                 f"train loss: {train_stats.loss:.4f}, acc: {train_stats.acc:.3f} | "
-                f"val loss: {val_stats.loss:.4f}, acc: {val_stats.acc:.3f}, mean average precision (mAP): {val_stats.mAP:.3f}, AP per class: {val_stats.AP_per_class}"
+                f"val loss: {val_stats.loss:.4f}, acc: {val_stats.acc:.3f}, acc_per_class: {val_stats.acc_per_class}, mean average precision (mAP): {val_stats.mAP:.3f}, AP per class: {val_stats.AP_per_class}"
             )
