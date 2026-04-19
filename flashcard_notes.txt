@@ -3,6 +3,7 @@ Lec. 3.:
 - log loss / cross entropy loss function from maximum likelihood estimate
 - softmax
 - logistic regression as a NN with one layer (output layer)
+- log loss naive model
 
 
 Lec. 4.:
@@ -40,6 +41,8 @@ Lec. 5.:
 	- Train only top layer vs all layers, dataset dependant what works best, check on validation set
 	- "Data augmentation"?
 
+----------------------------------------------------------------------
+
 Lec. 6.:
 
 
@@ -53,5 +56,82 @@ Lec. 6.:
 	4. pin_memory=True , "page-locked" memory bypass several steps when moving to GPU, increase transfer speed
 	--> used in torch.utils.data.DataLoader()
 
+----------------------------------------------------------------------
 
+Lec. 7.: Performance evaluation
+
+- Dataset splits: Train set, validation set, and test set. All subset of the original dataset/samples
+
+- k-fold cross validation: 1. We combine the train and validation sets into one large training subset. 
+			2. Then these are split into k folds (subsets), using k-1 folds to train and 1 fold for validation
+			3. The folds used for training is used as a typical train set, for say regression, or in DNN where we spit it up into batches and do epochs
+			4. Repeated k times
+
+- Development data vs application data: Data used for development might be to "clean" or standardized compared to what the model will meet in real application
+	- Called domain shift
+	- Use of external dataset (to represent "real world" data) (should only be use once) to evaluate the final model. Doing to much optimization in regard of the model will overfit to this test data.
+
+----------------------------------------------------------------------
+
+Lec. 8.: Data Augmentation
+
+- Data augmentation: Image transformations to produce more data from what we have
+
+- Image transformations:
+	- Geometric: changes size, shape, position, orientation
+		- Affine: rotations and flips, shifting, scaling, and shearing
+
+	- Photometric: changes brightness, contrast, colour, noise
+		- Colour jitter: Random values of the HSV cylinder (hue, saturation, value)
+		- Solarization: colours above a certain threshold are inverted
+
+	- Blur transformation: Using a Gaussian kernel (reduce/down-scale corners more => lowering value of kernel weights)
+
+	- Mixup: overlap two images, does not need to be 50/50, one could be stronger
+	- Cutmix: take a random section (say a square a toward bottom right corner) from one image and paste in into (overlap) another image, producing a collage
+
+	- both above techniques the labels might as well be blended, so if the resulting image of an augmented image is of what we consider 40% label A and 60% label B, we can say the new label is: 0.4 A and 0.6 B. Using softmax that would simply be [0.4, 0.6].
+
+- Label smoothing: Instead of one-hot encoded (hard) labels like [0, 1, 0], we smooth them with softmax-like probability, like
+[0.05, 0.90, 0.05]
+
+
+- Augmentation technique must be chosen based on the data, some techniques might be counter productive causing critical information loss like colour of flags (if turned grayscale) or other characteristics of the data
+
+- Global pooling: used before the dense layer at the end of the network allows for use of use of different image sizes,
+	- Pool one value from each feature map at this point, creating an 1D array
+
+- Random weight initialization: normal or uniform distribution with mean zero
+
+- Contrastive Learning:
+	- Similarity score: different augmentations of the same images have higher score, and augmentations from different images lower score
+
+----------------------------------------------------------------------
+
+Lec. 9.: Recurrent Neural Networks - RNNs
+
+- In short: 
+
+- Exploding gradient problem:
+	- Approaches to deal with it:
+		- Clipping by value: Set all elements: g_i > T, to g_i = T. PROBLEM that we lose direction
+		- Clipping by norm (scaling): If l2-norm of G > T, scale all elements g_i by T/l2(G), this PRESERVES direction
+
+----------------------------------------------------------------------
+
+Lec. 10: Vision Transformers	
+
+- Word embedding:
+- Positional encoding:
+- Self-attention:
+- Encoder-decoder attention:
+- Residual connections:
+
+- Key (a vector): hidden state of the encoder
+- Query (a vector): hidden state of the decoder
+
+- (Alignment-function?) take key and query as input, return a number that say how relevant that spesific key is to the query
+
+
+----------------------------------------------------------------------
 
