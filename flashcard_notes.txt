@@ -135,3 +135,39 @@ Lec. 10: Vision Transformers
 
 ----------------------------------------------------------------------
 
+Lec. 11: Deep Learning Theory
+
+- Entropy: 
+	High --> highly probable state
+	Low --> less probable state
+	Microstate: Configurations
+	Macrostate: Grouping of microstates
+
+	No randomness --> unlikely --> low entropy
+	High randomness (maximum 50/50) --> typical --> high entropy
+
+	= Average amount of surprise (total surprise divided by number of event) = expected surprise of event = the entropy of the event
+
+	Entropy = expected value of surprise
+
+- A mathematical metric (the abstract generalization of distance (in analysis)):
+	- Satisfies four criteria:
+		d : X * X --> R
+
+		1. d(x, y) >= 0
+		2. d(x, y) = 0 <=> x = y
+		3. d(x, y) = d(y, x)
+		4. d(x, z) <= d(x, y) + d(y, z), the triangle inequality
+
+- Mutual information: reduction in uncertainty in Z = X + Y, when knowing something about X, but nothing about Y
+	- BUT: something that never changes can't tell us anything about something that do
+
+- Surprise: Inversely related to probability (but not directly, see bellow)
+	Low surprise --> something highly probable happened
+	High surprise --> something unprobeable happened 
+
+	surprise(X) = log(1/p(X))
+	For two outputs we use log with base 2
+
+	Average amount of surprise (total surprise divided by number of event) = expected surprise of event = the entropy of the event
+	Entropy = expected value of surprise
