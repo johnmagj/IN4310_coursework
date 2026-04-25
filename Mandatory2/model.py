@@ -17,8 +17,12 @@ class ImageCaptionModel(nn.Module):
         :param use_attention (bool): Use the attention mechanism if True
         """
         super(ImageCaptionModel, self).__init__()
-        # TODO: Check the task description and replace None with the correct feature projection layer
-        self.feature_projection = None
+        # DONE: Check the task description and replace None with the correct feature projection layer
+        self.feature_projection = nn.Sequential(
+            nn.Dropout(0.25),
+            nn.Linear(cnn_feature_dim, hidden_size),
+            nn.LeakyReLU()
+        )
         # TODO: Implement Global Average Pooling using torch.nn.AdaptiveAvgPool2d
         self.avgpool = None
         self.caption_rnn = CaptionRNN(
