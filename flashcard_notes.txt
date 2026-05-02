@@ -110,27 +110,63 @@ Lec. 8.: Data Augmentation
 
 Lec. 9.: Recurrent Neural Networks - RNNs
 
-- In short: 
+- In short:
+
+- Architecture: Hidden state vector should have same length as the embedding vector or longer
+
+- Embedding size/dimension: The features of the word/token
+- Context window: The meaning of the sequence
+
+- Pipeline: A body of text (words) is converted into tokens (tokenization) based on the vocabulary and divided into sequences, all with the same size (number of tokens, for efficient computing). If not the seq. is padded or truncated to fit the RNN architecture. This is effectively the context window. A batch is a collection of these sequences. All the tokens in each sequence have a token ID (defined in the vocabulary). Then for each token we have an embedding (defined in the vocabulary). The embeddings have a given length/dimension/number-of-elements, i.e. a vector (typically horizontal for consistency) where each element is abstract feature. The number of tokens/embeddings per sequence define the number of timesteps/width of the RNN. A batch consisting of multiple sequences are sent as input to the RNN, and we can think of RNN being cloned over as many floors at there are sequences in the batch (batch size). Each floor having the same parameters/weights as all the other. Then each sequence is processed at its own floor. Loss is calculated for each timestep (not only the last), essentially predicting the next word/token for each word/token in the sequence. We get an average loss per floor, and per batch, which after the forward pass is used to train/update the weights. The embedding matrix (holding all the embeddings, one for each token) is also updated as the process of turning a token ID into an embedding can be considered an matrix multiplication (one hot token ID vector multiplied with the embedding matrix), thus differentiable and the embedding values are trained through back propagation.
+
+- teacher forcing: We predict the next token for each timestep and calculate the loss, but does not use the prediction for the next time step, we use the true token for that timestep as in the input sequence
+
+- Stateful RNNs: The last hidden state of one chunk is passe on to the start of the next chunk. Seqs. and batches are split so that succeeding sequences are processed on the same "floor" of the RNN, thus the last hidden state of one seq. can be sent to the first time step on the same floor for the next batch.
+
+- Types:
+	One-to-one (like normal FFNN). One input, one output --> classification or regression
+	One-to-many: E.g. One image input, a sequence of words as output --> image captioning
+	Many-to-one: E.g. Series of words/characters input, a sentiment category as output --> sentiment analysis
+	Many-to-many: E.g. A sequence of words input, a category for each word as output --> par of speech/grammatically tagging
+	Many-to-many(encoder-decoder): E.g. neural machine translation (NMT), input and output can have different lengths
+
+- The output is a 1D-vector of same size as the vocabulary size, where each element correspond to a token/word in the vocabulary. This is ran through a softmax function so that we get a probability distribution of what the predicted token/word for this timestep.
+- No need for positional encoding in classical RNNs, the timesteps are the positions, and the calculations are sequential (in contrast to transformers that calculate in parallel and thus need information about the positions)
 
 - Exploding gradient problem:
 	- Approaches to deal with it:
 		- Clipping by value: Set all elements: g_i > T, to g_i = T. PROBLEM that we lose direction
 		- Clipping by norm (scaling): If l2-norm of G > T, scale all elements g_i by T/l2(G), this PRESERVES direction
 
+- LSTM (Long-Short-Term-Memory): Solve the vanishing gradient problem. Exploding gradient still possible, but here we have strategies like above
+
 ----------------------------------------------------------------------
 
 Lec. 10: Vision Transformers	
 
-- Word embedding:
-- Positional encoding:
+- Word embedding: Turing a word into an array of numbers. The array length (also called dimensionality) is a hyperparameter typically 300-500 elements. The numbers are the weights of the embedding layer, typically a normalized number between -1 and 1.
+	- Thus these word embeddings become vectors in an embedding space
+	- Initialized randomly (normal or uniform), if not from another train model. Sometimes scaled on in specific ways based on vocabulary size and embedding dimensions
+	- Updated (trained) after every iteration (not epoch), but words not included in an iteration not updated
+- Positional encoding: A vector describing where a given instance of a word appears (the position) in a text string. This is added to the word embedding vector. Calculated through various sin and cos functions.
+- Vocabulary: A table of the words/tokens, their ID, and then the corresponding embedding/vector
+
+- The pipeline from sentence to vectors:
+	1. Sentence of words are turn into sequence of token IDs
+	2. Each token ID is converted into its respective word embedding
+	3. The position of each word is found and concatenated at the end of the word embedding
+	
+- Context window: The length/window of text that the model can see/work with. I.e. number of tokens to be embedded and positionally encoded with positions within the window.
+
 - Self-attention:
 - Encoder-decoder attention:
 - Residual connections:
 
-- Key (a vector): hidden state of the encoder
-- Query (a vector): hidden state of the decoder
+- Key (vector): hidden state of the encoder
+- Query (vector): hidden state of the decoder
+- Value (vector): 
 
-- (Alignment-function?) take key and query as input, return a number that say how relevant that spesific key is to the query
+- (Alignment-function?) take key and query as input, return a number that say how relevant that specific key is to the query
 
 
 ----------------------------------------------------------------------
