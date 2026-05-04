@@ -186,8 +186,8 @@ class CaptionRNN(nn.Module):
                 new_states.append(new_state)
 
                 if layer == self.num_layers - 1:
-                    # TODO: Get logits from the self.output_layer and append them to logits_series
-                    logits = None
+                    # DONE: Get logits from the self.output_layer and append them to logits_series
+                    logits = self.output_layer(new_states[layer][:, :self.hidden_state_size]) # Slice away the part used with LSTM
                     logits_series.append(logits)
                     if t < seq_len - 1:
                         if is_train:
