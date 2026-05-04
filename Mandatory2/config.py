@@ -12,9 +12,9 @@ class Config:
         self.max_caption_length = 30
         self.embedding_size = 512
         self.hidden_size = 512
-        self.use_attention = True
+        self.use_attention = False
         self.feature_size = 512
-        self.num_layers = 2
+        self.num_layers = 1
         self.cell_type = 'RNN'  # 'LSTM'
 
         # Vocabulary
@@ -24,5 +24,5 @@ class Config:
         # Optimisation
         self.learning_rate = 1e-4
         self.weight_decay = 1e-5
-        self.num_epochs = 40
+        self.num_epochs = 8
         self.batch_size = 128

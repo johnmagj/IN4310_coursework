@@ -45,9 +45,9 @@ def train():
     val_dataset = COCODataset(config.val_caption_file, config.resnet50_features_val_file, config, False)
     # Create dataloaders from the datasets
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, collate_fn=coco_collate_fn,
-                              shuffle=True, num_workers=10, pin_memory=True)
+                              shuffle=True, num_workers=8, pin_memory=True)
     val_loader = DataLoader(val_dataset, batch_size=256, collate_fn=coco_collate_fn,
-                            shuffle=False, num_workers=10, pin_memory=True)
+                            shuffle=False, num_workers=1, pin_memory=True)
 
     # Instantiate the model, optimiser, and loss function.
     model = ImageCaptionModel(512, config.embedding_size, config.hidden_size, config.vocabulary_size,
@@ -140,7 +140,7 @@ def debug():
     vocab_size = 5
 
     # Instantiate the model, loss function, and optimizer.
-    model = ImageCaptionModel(feature_dim, embed_size, hidden_size, vocab_size, 7, 2, 'LSTM')
+    model = ImageCaptionModel(feature_dim, embed_size, hidden_size, vocab_size, 7, 2, 'RNN')
     features = torch.randn(3, feature_dim, 3, 3)
     captions = torch.randint(0, 5, (3, 7))
     print(model(features, captions))

@@ -23,6 +23,9 @@ class ImageCaptionModel(nn.Module):
             nn.Linear(cnn_feature_dim, hidden_size),
             nn.LeakyReLU()
         )
+
+        self.use_attention = use_attention  # Was not declared in the original code, to be used in forward()
+
         # DONE: Implement Global Average Pooling using torch.nn.AdaptiveAvgPool2d
         self.avgpool = nn.AdaptiveAvgPool2d((1,1))
         self.caption_rnn = CaptionRNN(
@@ -67,7 +70,7 @@ class ImageCaptionModel(nn.Module):
                 features=processed_img_feat,
                 is_train=is_train
             )
-            return logits, final_hidden
+            return logits, None
 
 
 class CaptionRNN(nn.Module):
@@ -106,15 +109,21 @@ class CaptionRNN(nn.Module):
         # DONE: len(input_size_list) == num_rnn_layers and input_size_list[i] should contain the input size for layer i.
         # This is used to populate self.cells
         # For the first layer, the input is the concatenation of the token embedding and
-        # the raw feature vector or the attention-weighted feature vector.
-        input_size_list = [embedding_size + cnn_feature_dim] + [hidden_state_size]*(num_layers - 1)
+        # the raw feature vector or the attention-weighted feature vector. 
+        # Input to first layer
+        if self.use_attention:
+            input_size_list = [embedding_size + cnn_feature_dim]
+        else:
+            input_size_list = [embedding_size + hidden_state_size]
+        # Input remianing layers
+        input_size_list += [hidden_state_size]*(num_layers - 1)
       
         # DONE: Create a list of type "nn.ModuleList" and populate it with cells (layers) of type self.cell_type.
         self.cells = nn.ModuleList()
         if cell_type == "LSTM":
-            cell_type_class = nn.LSTMCell
+            cell_type_class = LSTMCell
         else:
-            cell_type_class = nn.RNNCell
+            cell_type_class = RNNCell
 
         for layer_i in range(num_layers):
             self.cells.append(cell_type_class(input_size_list[layer_i], hidden_state_size))
@@ -149,9 +158,10 @@ class CaptionRNN(nn.Module):
         # We do not need this size for vanilla RNN cell but we modify the RNNCell instead to have the same
         # interface for both RNNCell and LSTMCell. This avoids putting if statements at some places in the
         # code below.
+        device = tokens.device
         hidden_states = []
         for _ in range(self.num_layers):
-            hidden_states.append(torch.zeros(batch_size, 2*self.hidden_state_size))
+            hidden_states.append(torch.zeros(batch_size, 2*self.hidden_state_size, device=device))
 
         logits_series = []
         attn_weights_series = [] if self.use_attention else None
