@@ -281,10 +281,25 @@ class LSTMCell(nn.Module):
         :return: The updated hidden state (including memory) of the LSTM cell.
                  Shape: [batch_size, 2 * HIDDEN_STATE_SIZE]
         """
-        # TODO~: Implement the LSTM equations to get the new hidden state, cell memory and return them.
+        # DONE: Implement the LSTM equations to get the new hidden state, cell memory and return them.
         #       The first half of the returned value must represent the new hidden state and the second half
         #       new cell state.
-        new_hidden_state = None
+
+        hidden_state_prev = hidden_state[:, :self.hidden_state_size]
+        C_prev = hidden_state[:, self.hidden_state_size:]
+
+        def _input_weight_mul(weights, bias):
+            return torch.concat((hidden_state_prev, x), dim=1) @ weights + bias
+
+        f = torch.sigmoid(_input_weight_mul(self.weight_f, self.bias_f))
+        i = torch.sigmoid(_input_weight_mul(self.weight_i, self.bias_i))
+        o = torch.sigmoid(_input_weight_mul(self.weight_o, self.bias_o))
+        C_hat = torch.tanh(_input_weight_mul(self.weight, self.bias))
+
+        C = f*C_prev + i*C_hat
+        h = o*torch.tanh(C)
+
+        new_hidden_state = torch.concat((h, C), dim=1)
         return new_hidden_state
 
 

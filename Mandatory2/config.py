@@ -14,8 +14,8 @@ class Config:
         self.hidden_size = 512
         self.use_attention = False
         self.feature_size = 512
-        self.num_layers = 1
-        self.cell_type = 'RNN'  # 'LSTM'
+        self.num_layers = 2
+        self.cell_type = 'LSTM' # 'RNN' or 'LSTM'
 
         # Vocabulary
         self.vocabulary_file = f'{self._root_dir}/vocabulary.csv'
@@ -24,5 +24,5 @@ class Config:
         # Optimisation
         self.learning_rate = 1e-4
         self.weight_decay = 1e-5
-        self.num_epochs = 8
+        self.num_epochs = 4
         self.batch_size = 128

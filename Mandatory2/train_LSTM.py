@@ -45,9 +45,9 @@ def train():
     val_dataset = COCODataset(config.val_caption_file, config.resnet50_features_val_file, config, False)
     # Create dataloaders from the datasets
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, collate_fn=coco_collate_fn,
-                              shuffle=True, num_workers=8, pin_memory=True)
+                              shuffle=True, num_workers=10, pin_memory=True)
     val_loader = DataLoader(val_dataset, batch_size=256, collate_fn=coco_collate_fn,
-                            shuffle=False, num_workers=1, pin_memory=True)
+                            shuffle=False, num_workers=2, pin_memory=True)
 
     # Instantiate the model, optimiser, and loss function.
     model = ImageCaptionModel(512, config.embedding_size, config.hidden_size, config.vocabulary_size,
