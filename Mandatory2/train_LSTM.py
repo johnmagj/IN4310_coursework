@@ -140,7 +140,7 @@ def debug():
     vocab_size = 5
 
     # Instantiate the model, loss function, and optimizer.
-    model = ImageCaptionModel(feature_dim, embed_size, hidden_size, vocab_size, 7, 2, 'RNN')
+    model = ImageCaptionModel(feature_dim, embed_size, hidden_size, vocab_size, 7, 2, 'LSTM')
     features = torch.randn(3, feature_dim, 3, 3)
     captions = torch.randint(0, 5, (3, 7))
     print(model(features, captions))
