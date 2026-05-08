@@ -49,11 +49,14 @@ class ImageCaptionModel(nn.Module):
                                      time step. Shape: [seq_len, batch, num_regions]
         """
         if self.use_attention:
-            # TODO: Permute features: from [batch, channels, H, W] to [batch, H, W, channels],
+            # DONE: Permute features: from [batch, channels, H, W] to [batch, H, W, channels],
             #       then flatten spatial dimensions to get [batch, num_regions, channels].
-            cnn_features = None
-            # TODO: Apply the projection to each region (nn.Linear applies to the last dim).
-            processed_img_feat = None  # Resulting shape should be [batch, num_regions, hidden_size]
+            cnn_features = torch.permute(cnn_features, dims=(0, 2, 3, 1))
+            cnn_features = torch.flatten(cnn_features, start_dim=1, end_dim=2) # [batch, H*W, channels] = [batch, num_regions, channels]
+
+            # DONE: Apply the projection to each region (nn.Linear applies to the last dim).
+            processed_img_feat = self.feature_projection(cnn_features)  # Assume channels == cnn_feature_dim is True
+                                                                        # Resulting shape should be [batch, num_regions, hidden_size]
             logits, attn_weights = self.caption_rnn(
                 tokens=token_ids,
                 features=processed_img_feat,
@@ -312,9 +315,9 @@ class Attention(nn.Module):
             hidden_dim (int): Dimensionality of the hidden state.
         """
         super(Attention, self).__init__()
-        # TODO: Create layers to project the hidden state and the image features to a common dimension.
-        self.hidden_to_hidden = None  # Linear layer to project hidden_state to hidden_dim
-        self.features_to_hidden = None  # Linear layer to project cnn_feature_dim to hidden_dim
+        # DONE: Create layers to project the hidden state and the image features to a common dimension.
+        self.hidden_to_hidden = nn.Linear(hidden_dim, hidden_dim)  # Linear layer to project hidden_state to hidden_dim
+        self.features_to_hidden = nn.Linear(cnn_feature_dim, hidden_dim) # Linear layer to project cnn_feature_dim to hidden_dim
 
         self.hidden_to_attention_score = nn.Linear(hidden_dim, 1)
         self.relu = nn.LeakyReLU()
@@ -331,16 +334,28 @@ class Attention(nn.Module):
             context (Tensor): Weighted image feature vector, shape: [batch, encoder_dim].
             alpha (Tensor): Attention weights, shape: [batch, num_regions].
         """
-        # TODO: Project hidden state and unsqueeze() to [batch, 1, hidden_dim] so that it can be broadcast.
-        hidden_proj = None
-        # TODO: Project encoder outputs
-        enc_proj = None  # Resulting Shape: [batch, num_regions, hidden_dim]
-        # TODO: Add the projections and apply self.relu
-        att = None
-        # TODO: Get scalar attention scores for each region of the image
-        att_scores = None  # Resulting shape: [batch, num_regions]
-        # TODO: Apply softmax on the att_scores to get the alphas (attention weights)
-        alpha = None
-        # TODO: Compute context vector as the weighted sum of encoder outputs. You might need to unsqueeze() alpha.
-        context = None
+        # DONE: Project hidden state and unsqueeze() to [batch, 1, hidden_dim] so that it can be broadcast.
+        hidden_proj = self.hidden_to_hidden(hidden_state)   # shape [batch, hidden_dim]
+        hidden_proj = torch.unsqueeze(hidden_proj, dim=1)   # shape [batch, 1, hidden_dim]
+        
+        # DONE: Project encoder outputs                        
+        enc_proj = self.features_to_hidden(features)        # Resulting Shape: [batch, num_regions, hidden_dim]
+                                                            # Assuming: encoder_dim == cnn_feature_dum is True
+        
+        # DONE: Add the projections and apply self.relu
+        att = hidden_proj + enc_proj                        # dim=1 in hidden_proj is broadcasted
+        att = self.relu(att)                                # shape [batch, num_regions, hidden_dim]
+
+        # DONE: Get scalar attention scores for each region of the image
+        att_scores = self.hidden_to_attention_score(att)    # shape [batch, num_regions, 1]
+
+        # DONE: Apply softmax on the att_scores to get the alphas (attention weights)
+        alpha = self.softmax(att_scores)                    # shape [batch, num_regions, 1]
+
+        # DONE: Compute context vector as the weighted sum of encoder outputs. You might need to unsqueeze() alpha.
+        context = features*alpha                            # dim=2 in alpha is broadcasted
+                                                            # shape [batch, num_regions, encoder_dim]
+        
+        context = torch.sum(context, dim=1)                 # shape [batch, encoder_dim]
+        alpha = torch.squeeze(alpha, dim=2)                 # shape [batch, num_regions]
         return context, alpha
