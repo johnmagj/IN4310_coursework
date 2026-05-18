@@ -12,7 +12,7 @@ class Config:
         self.max_caption_length = 30
         self.embedding_size = 512
         self.hidden_size = 512
-        self.use_attention = False
+        self.use_attention = True
         self.feature_size = 512
         self.num_layers = 2
         self.cell_type = 'LSTM' # 'RNN' or 'LSTM'

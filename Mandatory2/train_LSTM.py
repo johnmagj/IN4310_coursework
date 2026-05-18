@@ -75,6 +75,7 @@ def train():
         epoch_start_steps.append(global_step)
         epoch_start = time.time()
         for features, captions, image_ids in train_loader:
+
             # Teacher forcing: shift the captions.
             # For example, if captions are [<start>, token1, token2, ..., ., <PAD>, <PAD>],
             # then inputs are all tokens except the last, and targets are all tokens except the first.

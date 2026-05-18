@@ -13,7 +13,7 @@ from torchvision import transforms
 
 from config import Config
 from eval_metrics.cider.cider import Cider
-from model import ImageCaptionModel
+from model_LSTM import ImageCaptionModel
 from utils.coco_feature_extractor import ResNet18Encoder
 from utils.vocabulary import Vocabulary
 
@@ -380,7 +380,7 @@ def generate_captioned_images_top_bottom(ckpt_path, src_directory, dest_dir, k=1
 if __name__ == "__main__":
     _config = Config()
     src_directory = _config.val_images_dir
-    ckpt_file_path = 'ckpts/your_file_name'
+    ckpt_file_path = 'ckpts/best_2layer_RNN_LSTM_self_attention.pth'
     dest_directory = f'./captioned_images/{Path(ckpt_file_path).stem}'
     # generate_captioned_images(ckpt_file_path, src_directory, dest_directory, 128)
-    generate_captioned_images_top_bottom(ckpt_file_path, src_directory, dest_directory, 100)
+    generate_captioned_images_top_bottom(ckpt_file_path, src_directory, dest_directory, k=100)

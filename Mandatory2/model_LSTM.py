@@ -143,7 +143,7 @@ class CaptionRNN(nn.Module):
             is_train (bool): If True, use teacher forcing.
 
         Returns:
-            logits (Tensor): Logits for each time step, shape [seq_len, batch, vocabulary_size].
+            logits (Tensor): Logits for each time step, shape [batch, seq_len, vocabulary_size].
             attn_weights (list[Tensor] or None): List of attention weights per time step if using attention;
                                                  otherwise, None. Shape: [seq_len, batch, num_regions]
         """
@@ -182,13 +182,21 @@ class CaptionRNN(nn.Module):
             for layer in range(self.num_layers):
                 if layer == 0:
                     if self.use_attention:
-                        # TODO:  Compute attention: use previous hidden state (only the first half of
+                        # TODO~: Compute attention: use previous hidden state (only the first half of
                         #        hidden_states variable) to attend over features.
-                        prev_hidden = None
+
+                        # We use the hidden state of the last layer for self attention.
+                        # For the first timestep (t=0) the incomming hidden state should be set to all zeros,
+                        # this is already the case for the last hidden_state in hidden_states list when t=0,
+                        # so we don't need an if-test or to construct an zero tensor.
+                        # For the other timesteps we simply use the hidden state of the last layer of the previous timestep.
+                        prev_hidden = hidden_states[-1][:, :self.hidden_state_size]
+
                         context, alpha = self.attention(features, prev_hidden)
                         attn_weights_series.append(alpha)
-                        # TODO: Concatenate token embedding with the attended image context.
-                        cell_input = None
+
+                        # TODO~: Concatenate token embedding with the attended image context.
+                        cell_input = torch.cat((current_token_vec, context), dim=1)
                     else:
                         # DONE: Without attention, concatenate the token embedding with the image feature.
                         cell_input = torch.cat((current_token_vec, features), dim=1)
@@ -302,7 +310,7 @@ class LSTMCell(nn.Module):
         C = f*C_prev + i*C_hat
         h = o*torch.tanh(C)
 
-        new_hidden_state = torch.concat((h, C), dim=1)
+        new_hidden_state = torch.concat((h, C), dim=1)  # shape [batch_size, 2 * HIDDEN_STATE_SIZE]
         return new_hidden_state
 
 
